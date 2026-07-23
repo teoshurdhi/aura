@@ -21,6 +21,7 @@ button.solid:hover{background:#dcdcd9}
 button.danger:hover{border-color:var(--err);color:var(--err)}
 button:disabled{opacity:.5;cursor:default}
 input,textarea,select{width:100%;background:var(--black);border:1px solid var(--line);border-radius:7px;color:var(--white);padding:.7rem .8rem;font-size:.95rem;-webkit-appearance:none}
+input[type=checkbox]{width:18px;height:18px;padding:0;-webkit-appearance:auto;appearance:auto;accent-color:#f2f2f0;cursor:pointer}
 input:focus,textarea:focus,select:focus{outline:none;border-color:var(--silver)}
 label{display:block;font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin:0 0 .35rem}
 .field{margin-bottom:.9rem}
@@ -179,14 +180,17 @@ async function logout(){ await sb.auth.signOut(); location.reload(); }
 function enterDash(){ show($("loginView"),false); show($("needsConfig"),false); show($("dashView")); loadProducts(); }
 
 /* ---- list ---- */
+let productMap = {};   // id -> product, so buttons never embed data in HTML
 async function loadProducts(){
   flash($("dashMsg"),"");
   const { data, error } = await sb.from("products").select("*").order("sort").order("id");
   if(error){ flash($("dashMsg"), error.message, "err"); return; }
+  productMap = {};
+  data.forEach(p => productMap[p.id] = p);
   $("count").textContent = `${data.length} product${data.length===1?"":"s"}`;
   $("list").innerHTML = data.map(p=>`
     <div class="row">
-      <img src="${p.image_url||""}" alt="" onerror="this.style.visibility='hidden'">
+      <img src="${esc(p.image_url||"")}" alt="" onerror="this.style.visibility='hidden'">
       <div class="info">
         <h3>${esc(p.name||"")}</h3>
         <p>${esc(p.sub||"")} — €${p.price}</p>
@@ -196,11 +200,20 @@ async function loadProducts(){
         </div>
       </div>
       <div class="acts">
-        <button onclick='editProduct(${JSON.stringify(p)})'>Edit</button>
-        <button class="danger" onclick="deleteProduct(${p.id}, ${JSON.stringify(p.name)})">Delete</button>
+        <button data-act="edit" data-id="${p.id}">Edit</button>
+        <button class="danger" data-act="del" data-id="${p.id}">Delete</button>
       </div>
     </div>`).join("") || '<p class="count">No products yet — click “Add product”.</p>';
 }
+/* one click handler for all Edit/Delete buttons (safe with any product text) */
+$("list").addEventListener("click", e=>{
+  const btn = e.target.closest("button[data-act]");
+  if(!btn) return;
+  const p = productMap[btn.dataset.id];
+  if(!p) return;
+  if(btn.dataset.act === "edit") editProduct(p);
+  else deleteProduct(p.id, p.name);
+});
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 /* ---- editor ---- */
