@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>AURA — Admin</title>
+<style>
+:root{--black:#0a0a0a;--coal:#151515;--line:#2b2b2b;--white:#f2f2f0;--silver:#b9b9b6;--dim:#82827e;--err:#c46a6a;--ok:#6ac47f}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Jost',system-ui,sans-serif}
+body{background:var(--black);color:var(--white);font-weight:300;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+h1{font-size:1.1rem;letter-spacing:.36em;text-transform:uppercase;font-weight:400}
+h2{font-size:.9rem;letter-spacing:.2em;text-transform:uppercase;font-weight:400}
+.wrap{max-width:1000px;margin:0 auto;padding:1.4rem}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.4rem;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(10,10,10,.9);backdrop-filter:blur(12px);z-index:10}
+button{font-family:inherit;cursor:pointer;color:inherit;background:none;border:1px solid var(--line);border-radius:7px;padding:.6rem 1rem;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;transition:.2s}
+button:hover{border-color:var(--silver)}
+button.solid{background:var(--white);color:var(--black);border-color:var(--white);font-weight:500}
+button.solid:hover{background:#dcdcd9}
+button.danger:hover{border-color:var(--err);color:var(--err)}
+button:disabled{opacity:.5;cursor:default}
+input,textarea,select{width:100%;background:var(--black);border:1px solid var(--line);border-radius:7px;color:var(--white);padding:.7rem .8rem;font-size:.95rem;-webkit-appearance:none}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--silver)}
+label{display:block;font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin:0 0 .35rem}
+.field{margin-bottom:.9rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.msg{padding:.7rem 1rem;border-radius:7px;font-size:.85rem;margin-bottom:1rem}
+.msg.err{background:rgba(196,106,106,.12);border:1px solid var(--err);color:#e6a3a3}
+.msg.ok{background:rgba(106,196,127,.12);border:1px solid var(--ok);color:#a6dcb3}
+.hidden{display:none!important}
+
+/* login */
+.login{max-width:360px;margin:16vh auto 0;padding:0 1.4rem;text-align:center}
+.login .halo{width:56px;height:22px;margin:0 auto 1.4rem;display:block}
+.login h1{margin-bottom:1.6rem}
+.login .field{text-align:left}
+
+/* product rows */
+.list{display:flex;flex-direction:column;gap:.7rem;margin-top:1.2rem}
+.row{display:grid;grid-template-columns:56px 1fr auto;gap:1rem;align-items:center;border:1px solid var(--line);border-radius:12px;padding:.7rem;background:var(--coal)}
+.row img{width:56px;height:56px;object-fit:cover;border-radius:7px;background:#000;flex:none}
+.row .info h3{font-size:.9rem;font-weight:400;letter-spacing:.08em}
+.row .info p{font-size:.78rem;color:var(--dim)}
+.row .tags{display:flex;gap:.4rem;margin-top:.25rem;flex-wrap:wrap}
+.tag{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--silver);border:1px solid var(--line);border-radius:20px;padding:.15rem .55rem}
+.row .acts{display:flex;gap:.4rem}
+.count{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+
+/* editor modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;z-index:50}
+.sheet{background:var(--coal);border:1px solid var(--line);border-radius:14px;width:100%;max-width:640px;padding:1.6rem}
+.sheet h2{margin-bottom:1.3rem}
+.preview{width:100%;aspect-ratio:1/1;max-width:180px;object-fit:cover;border-radius:10px;background:#000;margin-bottom:.6rem}
+.foot{display:flex;gap:.7rem;justify-content:flex-end;margin-top:1.4rem;flex-wrap:wrap}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px}
+@keyframes s{to{transform:rotate(360deg)}}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}.row{grid-template-columns:48px 1fr}.row .acts{grid-column:1/-1;justify-content:flex-end}}
+</style>
+</head>
+<body>
+
+<!-- ============ NOT CONFIGURED NOTICE ============ -->
+<div id="needsConfig" class="login hidden">
+  <h1>Admin</h1>
+  <div class="msg err">This admin page isn't connected to Supabase yet. Open <b>admin.html</b> and paste your Project URL and anon key into the CONFIG block near the top of the file.</div>
+</div>
+
+<!-- ============ LOGIN ============ -->
+<div id="loginView" class="login hidden">
+  <svg class="halo" viewBox="0 0 60 26" fill="none"><ellipse cx="30" cy="13" rx="27" ry="10" stroke="#cfcfcd" stroke-width="3.4"/></svg>
+  <h1>AURA Admin</h1>
+  <div id="loginMsg"></div>
+  <form id="loginForm">
+    <div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
+    <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+    <button class="solid" style="width:100%" type="submit" id="loginBtn">Sign in</button>
+  </form>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="dashView" class="hidden">
+  <div class="bar">
+    <h1>AURA Admin</h1>
+    <div style="display:flex;gap:.6rem;align-items:center">
+      <button class="solid" onclick="openEditor()">+ Add product</button>
+      <button onclick="logout()">Sign out</button>
+    </div>
+  </div>
+  <div class="wrap">
+    <div id="dashMsg"></div>
+    <div class="count" id="count"></div>
+    <div class="list" id="list"></div>
+  </div>
+</div>
+
+<!-- ============ EDITOR MODAL ============ -->
+<div id="editor" class="modal hidden">
+  <div class="sheet">
+    <h2 id="editorTitle">Edit product</h2>
+    <div id="editorMsg"></div>
+
+    <div class="field">
+      <label>Photo</label>
+      <img id="preview" class="preview" alt="" src="">
+      <input id="photoFile" type="file" accept="image/*">
+      <p style="font-size:.72rem;color:var(--dim);margin-top:.35rem">Upload a new photo, or leave as-is to keep the current one.</p>
+    </div>
+
+    <div class="grid2">
+      <div class="field"><label>Name</label><input id="e-name" placeholder="Aura № 13"></div>
+      <div class="field"><label>Price (€)</label><input id="e-price" type="number" step="0.01" placeholder="29"></div>
+    </div>
+    <div class="field"><label>Tagline (shown on card)</label><input id="e-sub" placeholder="Inspired by ..."></div>
+    <div class="grid2">
+      <div class="field"><label>Category</label>
+        <select id="e-cat"><option value="unisex">Unisex</option><option value="men">Men</option><option value="women">Women</option></select>
+      </div>
+      <div class="field"><label>Sort order (lower = first)</label><input id="e-sort" type="number" placeholder="13"></div>
+    </div>
+    <div class="field">
+      <label><input id="e-featured" type="checkbox" style="width:auto;margin-right:.5rem;vertical-align:-2px">Feature on home page carousel</label>
+    </div>
+    <div class="field"><label>Description</label><textarea id="e-desc" rows="3"></textarea></div>
+
+    <h2 style="font-size:.72rem;margin:1.2rem 0 .8rem;color:var(--dim)">Details table</h2>
+    <div class="grid2">
+      <div class="field"><label>Size</label><input id="e-size" placeholder="50 ml"></div>
+      <div class="field"><label>Inspired by</label><input id="e-inspired" placeholder="Dior Sauvage"></div>
+      <div class="field"><label>Family</label><input id="e-family" placeholder="Fresh Spicy"></div>
+      <div class="field"><label>Longevity</label><input id="e-longevity" placeholder="7–9 hours"></div>
+      <div class="field"><label>Wear</label><input id="e-wear" placeholder="Masculine · day"></div>
+    </div>
+
+    <div class="foot">
+      <button onclick="closeEditor()">Cancel</button>
+      <button class="solid" id="saveBtn" onclick="saveProduct()">Save product</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   CONFIG — paste your two values here (Settings -> API)
+   These two are safe to keep in front-end code.
+   ============================================================ */
+const SUPABASE_URL  = "https://zgtvmpaalyitsekhpuom.supabase.co";   // e.g. https://abcdefgh.supabase.co
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpndHZtcGFhbHlpdHNla2hwdW9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MzYwOTksImV4cCI6MjEwMDQxMjA5OX0.XXvM7Sa60sc1NuYQXvC6rB0j67vlwts70DXxgNKKyOA";      // the long "anon public" key
+/* ============================================================ */
+
+const BUCKET = "product-images";
+const configured = !SUPABASE_URL.startsWith("PASTE_") && !SUPABASE_ANON.startsWith("PASTE_");
+let sb = null, editingId = null;
+
+const $ = id => document.getElementById(id);
+const show = (el,on=true)=>el.classList.toggle("hidden",!on);
+function flash(box,text,type="ok"){box.innerHTML = text ? `<div class="msg ${type}">${text}</div>` : "";}
+
+async function boot(){
+  if(!configured){ show($("needsConfig")); return; }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  const { data:{ session } } = await sb.auth.getSession();
+  session ? enterDash() : show($("loginView"));
+}
+
+/* ---- auth ---- */
+$("loginForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const btn = $("loginBtn"); btn.disabled = true; btn.innerHTML = 'Signing in <span class="spin"></span>';
+  flash($("loginMsg"),"");
+  const { error } = await sb.auth.signInWithPassword({ email:$("email").value.trim(), password:$("password").value });
+  btn.disabled = false; btn.textContent = "Sign in";
+  if(error){ flash($("loginMsg"), error.message, "err"); return; }
+  enterDash();
+});
+async function logout(){ await sb.auth.signOut(); location.reload(); }
+
+function enterDash(){ show($("loginView"),false); show($("needsConfig"),false); show($("dashView")); loadProducts(); }
+
+/* ---- list ---- */
+async function loadProducts(){
+  flash($("dashMsg"),"");
+  const { data, error } = await sb.from("products").select("*").order("sort").order("id");
+  if(error){ flash($("dashMsg"), error.message, "err"); return; }
+  $("count").textContent = `${data.length} product${data.length===1?"":"s"}`;
+  $("list").innerHTML = data.map(p=>`
+    <div class="row">
+      <img src="${p.image_url||""}" alt="" onerror="this.style.visibility='hidden'">
+      <div class="info">
+        <h3>${esc(p.name||"")}</h3>
+        <p>${esc(p.sub||"")} — €${p.price}</p>
+        <div class="tags">
+          <span class="tag">${esc(p.cat||"")}</span>
+          ${p.featured?'<span class="tag">featured</span>':''}
+        </div>
+      </div>
+      <div class="acts">
+        <button onclick='editProduct(${JSON.stringify(p)})'>Edit</button>
+        <button class="danger" onclick="deleteProduct(${p.id}, ${JSON.stringify(p.name)})">Delete</button>
+      </div>
+    </div>`).join("") || '<p class="count">No products yet — click “Add product”.</p>';
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ---- editor ---- */
+function openEditor(){ editingId = null; fill({}); $("editorTitle").textContent = "Add product"; flash($("editorMsg"),""); show($("editor")); }
+function editProduct(p){ editingId = p.id; fill(p); $("editorTitle").textContent = "Edit product"; flash($("editorMsg"),""); show($("editor")); }
+function closeEditor(){ show($("editor"),false); $("photoFile").value=""; }
+
+function fill(p){
+  $("preview").src = p.image_url || "";
+  $("preview").dataset.url = p.image_url || "";
+  $("e-name").value = p.name||""; $("e-price").value = p.price??29; $("e-sub").value = p.sub||"";
+  $("e-cat").value = p.cat||"unisex"; $("e-sort").value = p.sort??0; $("e-featured").checked = !!p.featured;
+  $("e-desc").value = p.description||"";
+  $("e-size").value = p.meta_size||""; $("e-inspired").value = p.meta_inspired_by||"";
+  $("e-family").value = p.meta_family||""; $("e-longevity").value = p.meta_longevity||""; $("e-wear").value = p.meta_wear||"";
+}
+
+$("photoFile").addEventListener("change", e=>{
+  const f = e.target.files[0]; if(f) $("preview").src = URL.createObjectURL(f);
+});
+
+async function saveProduct(){
+  const btn = $("saveBtn"); btn.disabled = true; btn.innerHTML = 'Saving <span class="spin"></span>';
+  flash($("editorMsg"),"");
+  try{
+    let image_url = $("preview").dataset.url || null;
+    const file = $("photoFile").files[0];
+    if(file){
+      const ext = (file.name.split(".").pop()||"jpg").toLowerCase();
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+      const { error:upErr } = await sb.storage.from(BUCKET).upload(path, file, { cacheControl:"3600", upsert:false });
+      if(upErr) throw upErr;
+      image_url = sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    }
+    const rec = {
+      name:$("e-name").value.trim(),
+      sub:$("e-sub").value.trim(),
+      price:parseFloat($("e-price").value||"0"),
+      cat:$("e-cat").value,
+      featured:$("e-featured").checked,
+      sort:parseInt($("e-sort").value||"0",10),
+      description:$("e-desc").value.trim(),
+      image_url,
+      meta_size:$("e-size").value.trim()||null,
+      meta_inspired_by:$("e-inspired").value.trim()||null,
+      meta_family:$("e-family").value.trim()||null,
+      meta_longevity:$("e-longevity").value.trim()||null,
+      meta_wear:$("e-wear").value.trim()||null
+    };
+    if(!rec.name){ throw new Error("Name is required."); }
+    const q = editingId
+      ? sb.from("products").update(rec).eq("id", editingId)
+      : sb.from("products").insert(rec);
+    const { error } = await q;
+    if(error) throw error;
+    closeEditor(); loadProducts();
+    flash($("dashMsg"), editingId ? "Product updated." : "Product added.", "ok");
+    setTimeout(()=>flash($("dashMsg"),""), 3000);
+  }catch(err){
+    flash($("editorMsg"), err.message||"Something went wrong.", "err");
+  }finally{
+    btn.disabled = false; btn.textContent = "Save product";
+  }
+}
+
+async function deleteProduct(id, name){
+  if(!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  const { error } = await sb.from("products").delete().eq("id", id);
+  if(error){ flash($("dashMsg"), error.message, "err"); return; }
+  loadProducts();
+  flash($("dashMsg"), "Product deleted.", "ok");
+  setTimeout(()=>flash($("dashMsg"),""), 3000);
+}
+
+boot();
+</script>
+</body>
+</html>
